@@ -10,13 +10,14 @@
         <script src="kendo/js/jquery.min.js"></script>
         <script src="kendo/js/kendo.mobile.min.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
-
+        
         <script src="scripts/login.js"></script>
         <script src="scripts/location.js"></script>
         <script src="scripts/weather.js"></script>
         <script src="scripts/app.js"></script>
-
+        
     </head>
+    
     <body>
         <!--Home-->
         <div id="tabstrip-home" 
@@ -27,54 +28,35 @@
                 <h1>Welcome!</h1>
                 <a id="skin-change" data-role="button" data-click="app.changeSkin">Flat</a>
                 <p>
-                    Icenium&trade; enables you to build cross-platform device applications regardless of your
-                    development platform by combining the convenience of a local development toolset with the
-                    power and flexibility of the cloud.
+                    This is the SSGeoAPI Tester App
                 </p>
-                <div class="img"></div>
+                <div id="divStatus" style="padding:10px;"></div>
+                <ul id="app-status-ul">
+                </ul>
             </div>
         </div>
 
-        <!--Login-->
-        <div id="tabstrip-login" 
+        <!--Places-->
+        <div id="tabstrip-places" 
              data-role="view"  
-             data-title="Login" 
-             data-model="app.loginService.viewModel">
+             data-title="Places">
 
             <div data-role="content" class="view-content">
-                <div class="logo"></div>
-                <h3 data-bind="invisible: isLoggedIn">Enter your credentials:</h3>
-                <h1 class="welcome" data-bind="visible: isLoggedIn">
-                    Welcome, <span data-bind="text: username"></span>!
-                </h1>
-
-                <ul data-role="listview" data-style="inset" data-bind="invisible: isLoggedIn">
-                    <li>
-                        <label>
-                            Username
-                            <input type="text" data-bind="value: username"/>
-                        </label>
-                    </li>
-                    <li>
-                        <label>
-                            Password
-                            <input type="password" data-bind="value: password" />
-                        </label>
-                    </li>
+                <h3>Places</h3>
+                <div class="buttonArea">
+                    <a id="btnAddPlace" data-role="button" class="add-button">Add Place</a>
+                </div>
+                <ul data-role="listview" data-style="inset" data-init="LoadPlaces()">
                 </ul>
 
-                <div class="buttonArea">
-                    <a id="login" data-role="button" data-bind="click: onLogin, invisible: isLoggedIn" class="login-button">Login</a>
-                    <a id="logout" data-role="button" data-bind="click: onLogout, visible: isLoggedIn" class="login-button">Logout</a>
-                </div>
             </div>
 
         </div>
 
-        <!--Location-->
-        <div id="tabstrip-location" 
+        <!--Triggers-->
+        <div id="tabstrip-triggers" 
              data-role="view"  
-             data-title="Location" 
+             data-title="Triggers" 
              data-init="app.locationService.initLocation" 
              data-show="app.locationService.show" 
              data-hide="app.locationService.hide" 
@@ -94,50 +76,11 @@
 
         </div>
 
-        <!--Weather-->
-        <div id="tabstrip-weather" 
-             data-role="view"  
-             data-title="Weather" 
-             data-model="app.weatherService.viewModel">
-
-            <div data-role="content" class="weather">
-                <div data-role="scroller">
-                    <h1>20-Day Forecast</h1>
-
-                    <div class="separator">
-                        <div class="dark"></div>
-                        <div class="light"></div>
-                    </div>
-
-                    <ul class="forecast-list" 
-                        data-role="listview" 
-                        data-bind="source: weatherDataSource" 
-                        data-template="weather-forecast-template">                    
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!--Weather forecast template-->
-        <script type="text/x-kendo-tmpl" id="weather-forecast-template">
-            <div>
-                <div class="position-left">
-                    <span class="weather-info date">${day}</span>
-                </div>
-                <div class="position-right">
-                    <span class="weather-info temperature high">${highTemperature}<sup>&deg;</sup></span>
-                    <span class="weather-info temperature low">${lowTemperature}<sup>&deg;</sup></span>
-                </div>
-                <div class="position-center">
-                    <span class="weather-icon ${image}"></span>
-                </div>
-            </div>
-        </script>
-
         <!--Layout-->
         <div data-role="layout" data-id="tabstrip-layout" >
 
             <!--Header-->
+
             <div data-role="header">
                 <div data-role="navbar">
                     <span data-role="view-title"></span>
@@ -148,9 +91,8 @@
             <div data-role="footer">
                 <div data-role="tabstrip">
                     <a href="#tabstrip-home" data-icon="home">Home</a>
-                    <a href="#tabstrip-login" data-icon="contacts">Login</a>
-                    <a href="#tabstrip-location" data-icon="search">Location</a>
-                    <a href="#tabstrip-weather" data-icon="globe">Weather</a>
+                    <a href="#tabstrip-places" data-icon="contacts">Places</a>
+                    <a href="#tabstrip-triggers" data-icon="search">Triggers</a>
                 </div>
             </div>
         </div>
