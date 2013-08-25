@@ -1,27 +1,59 @@
 (function (global) {
-    //var pushNotification = window.plugins.pushNotification;
     
     var mobileSkin = "",
         app = global.app = global.app || {};
 
-    var deviceToken;
+    var tf;
     
+    var apnSuccessfulRegistration = function(token) {
+        alert("Successfully got a token:" + token);
+    }
+
+    var apnFailedRegistration = function(error) {
+        alert("Error: " + error.toString());
+    }
+
+    var pushNotification;
+
     document.addEventListener("deviceready", function () {
+        
         app.application = new kendo.mobile.Application(document.body, { layout: "tabstrip-layout" });
 
+        pushNotification = window.plugins.pushNotification;
 
-	    StartWatchingLocation();
-
-        Login();
-        
         /*
-        if (device.platform == 'android' || device.platform == 'Android') {
-            pushNotification.register(successHandler, errorHandler,{"senderID":"replace_with_sender_id","ecb":"onNotificationGCM"});
-        } else {
-            pushNotification.register(tokenHandler, errorHandler, {"badge":"true","sound":"true","alert":"true","ecb":"onNotificationAPN"});
+        
+        if (pushNotification == null || pushNotification == undefined)
+        {
+            console.log("pushNotification is null or undefined");
+        }
+        else
+        {
+            console.log("pushNotification is OK");
         }
         */
         
+        Login();
+	    StartWatchingLocation();
+
+		/*        
+        if (device.platform == 'android' || device.platform == 'Android') {
+            pushNotification.register(successHandler, errorHandler,
+          	{
+				"senderID":"replace_with_sender_id",
+                "ecb":"onNotificationGCM"
+            });
+        } else {
+            pushNotification.register(tokenHandler, errorHandler, 
+            {
+                "badge":"true",
+                "sound":"true",
+                "alert":"true",
+                "ecb":"onNotificationAPN"
+            });
+        }
+        */
+                
     }, false);
 
     app.changeSkin = function (e) {
@@ -41,6 +73,7 @@
     // result contains any message sent from the plugin call
     function successHandler (result) {
         console.log('result = '+result)
+        SubscribeToPush(result);
     }
     
     // result contains any error description text returned from the plugin call
@@ -51,9 +84,8 @@
     function tokenHandler (result) {
         // Your iOS push server needs to know the token before it can push to this device
         // here is where you might want to send it the token for later use.
-        deviceToken = result;
         console.log('device token = '+result)
-        
+        SubscribeToPush(result);
         
     }
     
@@ -170,6 +202,11 @@
     
     function WatchPositionError(error){
             $("#divStatus").prepend('WatchPosition returned failure ' + JSON.stringify(error) + ' </br>');
+    }
+    
+    
+	function SubscribeToPush(){
+        
     }
     
     function StartWatchingLocation(){
