@@ -2,49 +2,61 @@
     
     var mobileSkin = "",
         app = global.app = global.app || {};
-
-    var tf;
     
-    var apnSuccessfulRegistration = function(token) {
-        alert("Successfully got a token:" + token);
-    }
-
-    var apnFailedRegistration = function(error) {
-        alert("Error: " + error.toString());
-    }
-
-    var pushNotification;
-
+    var el = new Everlive('sKoj4kDemFDI0Pjl');
+    var pushNotifiction; 
+    
     document.addEventListener("deviceready", function () {
+            
         
         app.application = new kendo.mobile.Application(document.body, { layout: "tabstrip-layout" });
+                
+        Login();
+            
+        StartWatchingLocation();
+        
+        document.addEventListener("pause", onPause, false);
+        document.addEventListener("resume", onResume, false);
 
         pushNotification = window.plugins.pushNotification;
-
-        /*
         
-        if (pushNotification == null || pushNotification == undefined)
-        {
-            console.log("pushNotification is null or undefined");
-        }
-        else
-        {
-            console.log("pushNotification is OK");
-        }
+        /*
+        var pushSettings = {
+            iOS:{
+                badge: true,
+                sound: true,
+                alert: true
+            },
+            android:{
+                senderID: '1096136230769'
+            },
+            notificationCallbackIOS: function(e){
+                //logic for handling push in iOS
+                alert(e);
+            },
+            notificationCallbackAndroid:function(e){
+                //logic for handling push in Android
+            }
+        };
+        
+        var emulatorMode = false;
+		var currentDevice = el.push.currentDevice(emulatorMode);
+        
+        el.push.currentDevice().enableNotifications(pushSettings, onEnableNotificationsSuccess, onEnableNotificationsError);
+        
+        var customParameters = {};
+        el.push.currentDevice().register(customParameters, onRegistrationSuccess, onRegistrationError);
         */
         
-        Login();
-	    StartWatchingLocation();
 
-		/*        
         if (device.platform == 'android' || device.platform == 'Android') {
-            pushNotification.register(successHandler, errorHandler,
+            pushNotification.register(onRegistrationSuccess, onRegistrationError,
           	{
 				"senderID":"replace_with_sender_id",
                 "ecb":"onNotificationGCM"
             });
         } else {
-            pushNotification.register(tokenHandler, errorHandler, 
+            pushNotification.register(onRegistrationSuccess, onRegistrationError, 
             {
                 "badge":"true",
                 "sound":"true",
@@ -52,10 +64,34 @@
                 "ecb":"onNotificationAPN"
             });
         }
-        */
-                
+                  
+     
     }, false);
+    
+    function onPause() {
+    // Handle the pause event
+        acquire();
+	}
+    
+    function onResume() {
+        release();
+    }
 
+    function acquire() {
+            cordova.require('cordova/plugin/powermanagement').acquire(
+                    function() { alert( 'successfully acquired full wake lock' ); },
+                    function() { alert( 'error acquiring full wake lock' ); }
+                    );
+    };
+    
+    function release() {      
+            cordova.require('cordova/plugin/powermanagement').release(
+                    function() { alert( 'successfully released full wake lock' ); },
+                    function() { alert( 'error releasing full wake lock' ); }
+                    );
+        
+    };
+    
     app.changeSkin = function (e) {
         if (e.sender.element.text() === "Flat") {
             e.sender.element.text("Native");
@@ -69,7 +105,20 @@
         app.application.skin(mobileSkin);
     };
     
-    /*
+    function onEnableNotificationsSuccess(e){
+        alert('Enabled ' + JSON.stringify(e));
+    }
+    function onEnableNotificationsError(e){
+        alert('Enable Failed ' + JSON.stringify(e));
+    }
+    function onRegistrationSuccess(e){
+        alert('Registration Success ' + JSON.stringify(e));
+    }
+    function onRegistrationError(e){
+        alert('Registration Failed ' + JSON.stringify(e));
+    }
+    
+/*    
     // result contains any message sent from the plugin call
     function successHandler (result) {
         console.log('result = '+result)
@@ -101,7 +150,7 @@
         }
     
         if (event.badge) {
-            pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
+            app.pushNotification.setApplicationIconBadgeNumber(successHandler, errorHandler, event.badge);
         }
     }
 
@@ -155,6 +204,7 @@
         }
     }    
     */
+    
     function WatchPositionSuccess(position){
 
         $("#divStatus").prepend("**********************************</br>");
@@ -203,12 +253,7 @@
     function WatchPositionError(error){
             $("#divStatus").prepend('WatchPosition returned failure ' + JSON.stringify(error) + ' </br>');
     }
-    
-    
-	function SubscribeToPush(){
         
-    }
-    
     function StartWatchingLocation(){
 
         var watchId = navigator.geolocation.watchPosition(
@@ -216,7 +261,19 @@
             WatchPositionError,
             { maximumAge: 10000, timeout: 10000, enableHighAccuracy: true });    
     }    
-    
+        
+    function Login(){
+	    el.Users.login('bp4151@gmail.com',
+            'Test')
+            .then(function(data) {
+                // data.result contains an array of ojbects
+                alert('LOGIN SUCCESS' + JSON.stringify(data.result));
+            },
+            function(error) {
+                alert(error.message);
+            });        
+    }    
+    /*
     function Login(){
         console.log('Login start...');
         var url = "https://api.cloud.appcelerator.com/v1/users/login.json?key=j3qU2XFOTNYoDkLf9P3tg3Pf3REeHdXp";
@@ -240,4 +297,5 @@
             }
         });
     }
+    */
 })(window)

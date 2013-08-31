@@ -6,7 +6,7 @@
 
     <name>PushPlugin</name>
 
-	<asset src="www/PushNotification.js" target="PushNotification.js" />
+	<asset src="www/PushNotification.js" target="Plugins/PushPlugin/PushNotification.js" />
 
 	<platform name="android">
         <config-file target="res/xml/config.xml" parent="plugins">
@@ -47,10 +47,6 @@
 
   <!-- ios -->
     <platform name="ios">
-		<!-- Cordova < 2.3 -->
-        <!--
-        <plugins-plist key="PushPlugin" string="PushPlugin" />
-        -->
         
 		<!-- Cordova >= 2.3 -->
 		<config-file target="config.xml" parent="plugins">
