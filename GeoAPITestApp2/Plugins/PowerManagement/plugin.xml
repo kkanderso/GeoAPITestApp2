@@ -1,36 +1,25 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	id="com.simplec.plugins.powermanagement"
-	version="0.1.2">
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    id="com.phonegap.plugins.powermanagement"
+    version="1.0">
 
-	<name>PowerManagement</name>
+    <name>PowerManagement</name>
 
-		<description>
-			This plugin control powermanagement so that an application can run for a long time for iOS.
-		</description>
+    <asset src="www/powermanagement.js" target="powermanagement.js" />
+    
+    <!-- ios -->
+    <platform name="ios">
+        
+        <!-- Cordova >= 2.3 -->
+        <config-file target="config.xml" parent="plugins">
+            <feature name="PowerManagement">
+                <plugin name="PowerManagement" value="PowerManagement"/>
+            </feature>
+        </config-file>
 
-		<license>MIT</license>
-
-	<engines>
-		<engine name="cordova" version=">=2.3.0" />
-	</engines>
-
-
-	<asset src="www/PowerManagement.js" target="PowerManagement.js" />
-
-	<!-- ios -->
-	<platform name="ios">
-		<!-- Cordova >= 2.3 -->
-		<config-file target="config.xml" parent="plugins">
-			<feature name="PowerManagement">
-				<param name="PowerManagement" value="PowerManagement" />
-			</feature>
-		</config-file>
-
-
-		<header-file src="src/ios/PowerManagement.h" />
-		<source-file src="src/ios/PowerManagement.m" />
-	</platform>
+        <header-file src="src/ios/PowerManagement.h" />
+        <source-file src="src/ios/PowerManagement.m" />
+        
+    </platform>
 </plugin>

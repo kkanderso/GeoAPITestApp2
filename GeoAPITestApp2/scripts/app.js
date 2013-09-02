@@ -14,47 +14,58 @@
 
     var idxLocation = 0;
     
+    var tf = cordova.require("cordova/plugin/testflightsdk");
+    var pm = cordova.require("cordova/plugin/powermanagement");
+    var isEnabled = false;
+    var date = new Date();
+            
     document.addEventListener("deviceready", function () {
         
         app.application = new kendo.mobile.Application(document.body, { layout: "tabstrip-layout" });
         
-        Login();
-		
         /*
+        tf.addCustomEnvironmentInformation(
+            function(e){
+    			console.log('TestflightSDK succeeded...');            
+            }, 
+            function(error){
+            	console.log('TestflightSDK failed ' + error); 
+	        }, 
+            '00c9b942-6b19-40b8-84fd-ef6975289238', 'information');
+		*/
+        
+        tf.takeOff(function(){
+            console.log('Take Off Success');
+        }, function(){
+            console.log('Take Off Fail');
+        }, '00c9b942-6b19-40b8-84fd-ef6975289238');        
         document.addEventListener("pause", onPause, false);
         document.addEventListener("resume", onResume, false);
-        */
-                
+
+        Login();
+		                
         StartWatchingLocation();
      
     }, false);
         
-/*
     function onPause() {
     // Handle the pause event
-        acquire();
+        pm.acquire(
+            function() { console.log( 'successfully acquired full wake lock' ); },
+            function() { console.log( 'error acquiring full wake lock' ); }    
+        );
 	}
     
     function onResume() {
-        release();
-    }
-   	 
-    function acquire() {
-            cordova.require('cordova/plugin/powermanagement').acquire(
-                    function() { alert( 'successfully acquired full wake lock' ); },
-                    function() { alert( 'error acquiring full wake lock' ); }
-                    );
+        pm.release(
+            function() { 
+                console.log( 'successfully released full wake lock' ); 
+                RegisterForPush();
+            },
+            function() { console.log( 'error releasing full wake lock' ); }                
+        );
     }
     
-    function release() {      
-            cordova.require('cordova/plugin/powermanagement').release(
-                    function() { alert( 'successfully released full wake lock' ); },
-                    function() { alert( 'error releasing full wake lock' ); }
-                    );
-        
-    }
-    */
-        
     app.changeSkin = function (e) {
         if (e.sender.element.text() === "Flat") {
             e.sender.element.text("Native");
@@ -68,6 +79,20 @@
         app.application.skin(mobileSkin);
     };
 
+    app.sendPush = function(e) {
+                
+    	el.push.notifications.create(
+        { 
+            Message:'Hello'            
+        },
+        function(data){
+            alert('Push Message Sent ' + JSON.stringify(data));
+        },
+        function(error){
+            alert('Push Message Failed ' + JSON.stringify(error));
+        });
+    }
+    
     var onAndroidPushReceived = function(args) {
         alert('Android notification received: ' + JSON.stringify(args)); 
     };
@@ -80,16 +105,16 @@
 
         $("#divStatus").prepend("**********************************</br>");
         $("#divStatus").prepend("Updating Position " + idxLocation + "!...</br>");
-        $("#divStatus").prepend(position.coords.latitude +"</br>");
-        $("#divStatus").prepend(position.coords.longitude +"</br>");
-        $("#divStatus").prepend(position.coords.speed +"</br>");
-        $("#divStatus").prepend(position.coords.altitude +"</br>");
-        $("#divStatus").prepend(position.coords.accuracy +"</br>");
-        $("#divStatus").prepend(position.coords.altitudeAccuracy +"</br>");
-        $("#divStatus").prepend(position.timestamp +"</br>");
+        $("#divStatus").prepend("lat: " + position.coords.latitude +"</br>");
+        $("#divStatus").prepend("lon: " + position.coords.longitude +"</br>");
+        $("#divStatus").prepend("speed: " + position.coords.speed +"</br>");
+        $("#divStatus").prepend("alt: " + position.coords.altitude +"</br>");
+        $("#divStatus").prepend("accuracy: " + position.coords.accuracy +"</br>");
+        $("#divStatus").prepend("alt accuracy: " + position.coords.altitudeAccuracy +"</br>");
+        $("#divStatus").prepend("timestamp: " + new Date(position.timestamp) +"</br>");
 
         idxLocation++;
-        
+       
         $.support.cors = true;
 
         var request = $.ajax({
@@ -130,12 +155,19 @@
         
     function StartWatchingLocation(){
 
+        window.setInterval(function(){
+            navigator.geolocation.getCurrentPosition(WatchPositionSuccess, WatchPositionError);    
+        }, 30000); 
+        
+        /*
         var watchId = navigator.geolocation.watchPosition(
             WatchPositionSuccess,
             WatchPositionError,
             { maximumAge: 10000, timeout: 10000, enableHighAccuracy: true });    
+        */
     }    
         
+    
     function RegisterForPush()
     {
         console.log('RegisterForPush called...');
@@ -147,32 +179,98 @@
                 alert: "true"
             },
             android:{
-                senderID: 1096136230769
+                senderID: '1096136230769'
             },
             notificationCallbackIOS : onIosPushReceived,
             notificationCallbackAndroid : onAndroidPushReceived
         };   
-        
-        el.push.currentDevice().enableNotifications(pushSettings, 
-            function(e){
-                alert('enabled');
-                el.push.currentDevice().getRegistration(function(){
-                    console.log('Device already registered...');
-                },
-                function(){
-                    
-                    el.push.currentDevice().register(null, 
-                        function(e){
-                            alert('registered for push ' + e);
-                        }, function(error){
-                            alert('register for push failed ' + JSON.stringify(error));
+    
+        if(!isEnabled)
+        {
+            el.push.currentDevice().enableNotifications(pushSettings, 
+                function(e){
+                    alert('push is now enabled');
+                    isEnabled = true;
+                    el.push.currentDevice().getRegistration(function(e){
+                        console.log('getRegistration result: ' + JSON.stringify(e));
+                        if (e.result == null)
+                        {
+                            el.push.currentDevice().register(null, 
+                                function(e){
+                                    alert('registered for push ' + JSON.stringify(e));
+                                }, function(error){
+                                    console.log('register for push failed ' + JSON.stringify(error));
+                            });                                        
+                        }
+                        else
+                        {
+                            el.push.currentDevice().unregister(function(){
+                                el.push.currentDevice().register(null, 
+                                    function(e){
+                                        alert('registered for push ' + JSON.stringify(e));
+                                    }, function(error){
+                                        console.log('register for push failed ' + JSON.stringify(error));
+                                });                                                                    
+                            }, function(){
+                                console.log('unregister failed');
+                            });
+                            
+                        }
+                    },
+                    function(){
+                        console.log('Registering device...');
+                        el.push.currentDevice().register(null, 
+                            function(e){
+                                console.log('registered for push ' + e);
+                            }, function(error){
+                                console.log('register for push failed ' + JSON.stringify(error));
+                        });                
                     });                
-                });                
-            }, 
-            function(error){
-                alert('push enable failed ' + error); 
-            }
-        );
+                }, 
+                function(error){
+                    alert('push enable failed ' + error); 
+                }
+            );
+            
+        }
+        else
+        {
+            el.push.currentDevice().getRegistration(function(e){
+                alert('getRegistration result: ' + JSON.stringify(e));
+                if (e.result == null)
+                {
+                    el.push.currentDevice().register(null, 
+                    function(e){
+                        alert('registered for push ' + JSON.stringify(e));
+                    }, function(error){
+                        console.log('register for push failed ' + JSON.stringify(error));
+                    });                                        
+                }
+                else
+                {
+                    el.push.currentDevice().unregister(function(){
+                        el.push.currentDevice().register(null, 
+                        	function(e){
+                                alert('registered for push ' + JSON.stringify(e));
+                            }, function(error){
+                                console.log('register for push failed ' + JSON.stringify(error));
+                            });                                                                    
+                    }, function(){
+                        console.log('unregister failed');
+                    });
+                    
+                }
+            },
+            function(){
+                console.log('Registering device...');
+                el.push.currentDevice().register(null, 
+                	function(e){
+                        console.log('registered for push ' + e);
+                    }, function(error){
+                        console.log('register for push failed ' + JSON.stringify(error));
+                    });                
+            });                
+        }
 
     }
 
